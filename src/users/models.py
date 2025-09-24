@@ -29,7 +29,8 @@ class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"))
     token_hash: Mapped[str] = mapped_column()
     expires_at: Mapped[datetime] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(default=datetime.now())
