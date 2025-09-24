@@ -1,11 +1,9 @@
-from fastapi import HTTPException, status
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 import secrets
 
 from sqlalchemy.ext.asyncio import AsyncSession
 import jwt
-from jwt import PyJWTError
 
 from src.auth.constants import (
     EXPIRES_DAYS_AT_REFRESH_TOKEN,
@@ -15,28 +13,15 @@ from src.auth.repository import UserRepository
 from src.auth.schemas import Tokens
 from src.auth.repository import RefreshTokenRepository
 from src.config import settings
+from src.exceptions import (
+    TokenExpiredException,
+    InvalidTokenException,
+    TokenNotFoundException,
+    UsernameAlreadyExistsException,
+    IncorrectUserDataException
+)
 
 pwd_context = CryptContext(schemes=['argon2'], deprecated='auto')
-
-
-class UsernameAlreadyExistsError(Exception):
-    pass
-
-
-class IncorrectUserData(Exception):
-    pass
-
-
-class TokenNotFound(Exception):
-    pass
-
-
-class InvalidToken(Exception):
-    pass
-
-
-class TokenExpired(Exception):
-    pass
 
 
 class UserService:
@@ -44,16 +29,15 @@ class UserService:
     async def register_user(cls, username, password, session):
         user = await UserRepository.get_one_or_none(session, username=username)
         if user:
-            raise UsernameAlreadyExistsError(
-                f"User with username {username} already exists"
-            )
+            raise UsernameAlreadyExistsException()
         hashed_password = get_password_hash(password)
         await UserRepository.add_data(
             session=session,
             username=username,
             hashed_password=hashed_password
         )
-        new_user = await UserRepository.get_one_or_none(session, username=username)
+        new_user = await UserRepository.get_one_or_none(
+            session, username=username)
         if not new_user:
             raise ValueError("User creation failed")
         return await create_tokens(new_user.id, username, session)
@@ -62,7 +46,7 @@ class UserService:
     async def login_user(cls, username, password, session):
         user = await UserRepository.get_one_or_none(session, username=username)
         if not user or not verify_password(password, user.hashed_password):
-            raise IncorrectUserData('incorrect username or password')
+            raise IncorrectUserDataException()
         return await create_tokens(user.id, username, session)
 
 
@@ -120,44 +104,32 @@ async def create_tokens(id, username, session) -> Tokens:
 
 
 async def refresh_access_token(refresh_token: str | None, session) -> Tokens:
-    try:
-        if not refresh_token:
-            raise TokenNotFound('Refresh token not found')
+    if not refresh_token:
+        raise TokenNotFoundException()
 
-        refresh_token_record = await RefreshTokenRepository.get_refresh_token(
-            refresh_token, session
+    refresh_token_record = await RefreshTokenRepository.get_refresh_token(
+        refresh_token, session
+    )
+
+    if not refresh_token_record:
+        raise InvalidTokenException()
+
+    if refresh_token_record.expires_at < datetime.now():
+        await RefreshTokenRepository.delete_data(
+            session, id=refresh_token_record.id
         )
+        raise TokenExpiredException()
 
-        if not refresh_token_record:
-            raise InvalidToken('Invalid refresh token')
+    user = await UserRepository.get_one_or_none(
+        session, id=refresh_token_record.user_id)
+    if not user:
+        raise InvalidTokenException()
 
-        if refresh_token_record.expires_at < datetime.now():
-            await RefreshTokenRepository.delete_data(
-                session, id=refresh_token_record.id
-            )
-            raise TokenExpired('Refresh token expired')
-
-        user = await UserRepository.get_one_or_none(
-            session, id=refresh_token_record.user_id)
-        if not user:
-            raise InvalidToken('User not found')
-
-        tokens = await create_tokens(user.id, user.username, session)
-        return Tokens(
-            access_token=tokens.access_token,
-            refresh_token=tokens.refresh_token
-        )
-
-    except (TokenNotFound, TokenExpired, InvalidToken) as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
-    except PyJWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token validation error"
-        )
+    tokens = await create_tokens(user.id, user.username, session)
+    return Tokens(
+        access_token=tokens.access_token,
+        refresh_token=tokens.refresh_token
+    )
 
 
 def get_password_hash(password: str) -> str:

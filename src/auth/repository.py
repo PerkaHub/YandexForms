@@ -14,7 +14,9 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
     model = RefreshToken
 
     @classmethod
-    async def get_refresh_token(cls, refresh_token: str, session: AsyncSession):
+    async def get_refresh_token(
+        cls, refresh_token: str, session: AsyncSession
+    ):
         time_limit = datetime.now() - timedelta(days=30)
 
         query = select(RefreshToken).where(
