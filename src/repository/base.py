@@ -1,4 +1,4 @@
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -16,5 +16,11 @@ class BaseRepository[M]:
     @classmethod
     async def add_data(cls, session, **data):
         query = insert(cls.model).values(**data)
+        await session.execute(query)
+        await session.commit()
+
+    @classmethod
+    async def delete_data(cls, session, **data):
+        query = delete(cls.model).filter_by(**data)
         await session.execute(query)
         await session.commit()
