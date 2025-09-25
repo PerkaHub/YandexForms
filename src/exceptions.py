@@ -29,3 +29,13 @@ class InvalidTokenException(BaseAPIException):
 class TokenExpiredException(BaseAPIException):
     detail = 'Refresh token expired'
     status_code = status.HTTP_401_UNAUTHORIZED
+
+
+class UnexpectedException(BaseAPIException):
+    detail = 'Unexpected error occurred'
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class DatabaseException(BaseAPIException):
+    detail = 'Database operation failed'
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

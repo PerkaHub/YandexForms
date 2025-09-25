@@ -1,5 +1,11 @@
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database import get_db_session
+from src.forms.schemas import CreateForm
+from src.dependencies import get_current_user
+from src.users.models import User
+from src.forms.service import FormService
 
 
 router = APIRouter(
@@ -9,8 +15,23 @@ router = APIRouter(
 
 
 @router.post('/')
-async def create_form():
-    pass
+async def create_form(
+    data: CreateForm,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session)
+):
+    try:
+        form = await FormService.create_form(data, user.id, session)
+        return {
+                "message": "Form created successfully",
+                "form_id": form.id
+            }
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error creating form: {str(e)}"
+        )
 
 
 @router.get('/{form_id}')
