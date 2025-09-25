@@ -27,7 +27,7 @@ class CreateOrUpdateFormField(BaseModel):
 
 class CreateOrUpdateForm(BaseModel):
     title: str
-    description: str | None
+    description: str | None = None
     fields: list[CreateOrUpdateFormField]
 
 

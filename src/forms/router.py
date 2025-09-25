@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db_session
@@ -60,9 +60,13 @@ async def update_form(
     return await FormService.update_form(form_id, update_data, session)
 
 
-@router.delete('/{form_id}')
-async def delete_form():
-    pass
+@router.delete('/{form_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_form(
+    form_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session)
+):
+    await FormService.delete_form(form_id, user.id, session)
 
 
 @router.post("/{form_id}/responses")

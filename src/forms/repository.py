@@ -70,3 +70,12 @@ class FormRepository(BaseRepository[Form]):
         except SQLAlchemyError:
             await session.rollback()
             raise DatabaseException()
+
+    @classmethod
+    async def delete_form(cls, form, session) -> None:
+        try:
+            await session.delete(form)
+            await session.commit()
+        except SQLAlchemyError:
+            await session.rollback()
+            raise DatabaseException()
