@@ -55,7 +55,7 @@ class FormField(Base):
     )
     responses: Mapped['FormResponse'] = relationship(
         "FormResponse",
-        back_populates="field"
+        back_populates="field",
         lazy='selectin'
     )
 
@@ -81,6 +81,8 @@ class FieldOption(Base):
 
 
 class FormResponse(Base):
+    __tablename__ = "form_responses"
+
     id: Mapped[int] = mapped_column(
         primary_key=True, nullable=False, autoincrement=True,
     )
