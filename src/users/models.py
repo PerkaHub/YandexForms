@@ -18,6 +18,16 @@ class User(Base):
         nullable=False
     )
 
+    forms: Mapped['Form'] = relationship(
+        "Form",
+        back_populates="owner",
+        lazy='selectin'
+    )
+    responses: Mapped['FormResponse'] = relationship(
+        "FormResponse",
+        back_populates="user",
+        lazy='selectin'
+    )
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken",
         back_populates="user",
