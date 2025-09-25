@@ -23,7 +23,9 @@ class Form(Base):
     fields: Mapped[list['FormField']] = relationship(
         "FormField",
         back_populates="form",
-        lazy='selectin'
+        lazy='selectin',
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
     responses: Mapped[list['FormResponse']] = relationship(
         "FormResponse",
@@ -51,7 +53,9 @@ class FormField(Base):
     options: Mapped[list['FieldOption']] = relationship(
         "FieldOption",
         back_populates="field",
-        lazy='selectin'
+        lazy='selectin',
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
     responses: Mapped[list['FormResponse']] = relationship(
         "FormResponse",
@@ -76,7 +80,9 @@ class FieldOption(Base):
     )
     responses: Mapped[list['FormResponse']] = relationship(
         "FormResponse",
-        back_populates="option"
+        back_populates="option",
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
