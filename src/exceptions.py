@@ -39,3 +39,8 @@ class UnexpectedException(BaseAPIException):
 class DatabaseException(BaseAPIException):
     detail = 'Database operation failed'
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class FormNotFoundExceprion(BaseAPIException):
+    detail = 'Form not found'
+    status_code = status.HTTP_404_NOT_FOUND

@@ -2,15 +2,15 @@ from pydantic import BaseModel, field_validator
 from src.forms.enum import FieldTypeEnum
 
 
-class CreateFieldOption(BaseModel):
+class CreateOrUpdateFieldOption(BaseModel):
     option_text: str
 
 
-class CreateFormField(BaseModel):
+class CreateOrUpdateFormField(BaseModel):
     field_type: FieldTypeEnum
     question_text: str
     is_required: bool
-    options: list[CreateFieldOption] = []
+    options: list[CreateOrUpdateFieldOption] = []
 
     @field_validator('options')
     @classmethod
@@ -25,7 +25,40 @@ class CreateFormField(BaseModel):
         return v
 
 
-class CreateForm(BaseModel):
+class CreateOrUpdateForm(BaseModel):
     title: str
     description: str | None
-    fields: list[CreateFormField]
+    fields: list[CreateOrUpdateFormField]
+
+
+class ResponseFieldOption(BaseModel):
+    id: int
+    option_text: str
+
+    class Config:
+        from_attributes = True
+
+
+class ResponseFormField(BaseModel):
+    id: int
+    field_type: str
+    question_text: str
+    is_required: bool
+    options: list[ResponseFieldOption] = []
+
+    class Config:
+        from_attributes = True
+
+
+class ResponseForm(BaseModel):
+    id: int
+    title: str
+    description: str | None
+    fields: list[ResponseFormField]
+
+    class Config:
+        from_attributes = True
+
+
+class ResponseFormList(BaseModel):
+    forms: list[ResponseForm]
