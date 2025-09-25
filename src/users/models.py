@@ -18,12 +18,12 @@ class User(Base):
         nullable=False
     )
 
-    forms: Mapped['Form'] = relationship(
+    forms: Mapped[list['Form']] = relationship(
         "Form",
         back_populates="owner",
         lazy='selectin'
     )
-    responses: Mapped['FormResponse'] = relationship(
+    responses: Mapped[list['FormResponse']] = relationship(
         "FormResponse",
         back_populates="user",
         lazy='selectin'
