@@ -31,14 +31,15 @@ async def verify_token(
         return payload
     except PyJWTError:
         raise credentials_exception
-    
+
 
 async def get_current_user(
     payload: dict = Depends(verify_token),
     session: AsyncSession = Depends(get_db_session)
 ):
-    user = await UserRepository.get_one_or_none(session, username=payload.get('username'))
+    user = await UserRepository.get_one_or_none(
+        session, username=payload.get('username'))
     if user is None:
         raise credentials_exception
-    
+
     return user

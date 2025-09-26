@@ -12,6 +12,7 @@ sys.path.insert(0, dirname(dirname(abspath(__file__))))
 from src.config import settings
 from src.database import Base
 from src.users.models import User, RefreshToken
+from src.forms.models import Form, FormField, FieldOption, FormResponse
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
