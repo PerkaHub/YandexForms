@@ -62,3 +62,13 @@ class ResponseForm(BaseModel):
 
 class ResponseFormList(BaseModel):
     forms: list[ResponseForm]
+
+
+class AnswerData(BaseModel):
+    field_id: int
+    answer_text: str | None = None
+    answer_option_id: int | None = None
+
+
+class CreateAnswer(BaseModel):
+    answers: list[AnswerData]

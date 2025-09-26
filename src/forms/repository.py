@@ -2,7 +2,7 @@ from sqlalchemy import insert, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.repository.base import BaseRepository
-from src.forms.models import Form, FormField, FieldOption
+from src.forms.models import Form, FormField, FieldOption, FormResponse
 from src.exceptions import DatabaseException
 
 
@@ -79,3 +79,15 @@ class FormRepository(BaseRepository[Form]):
         except SQLAlchemyError:
             await session.rollback()
             raise DatabaseException()
+
+
+class FormFieldRepository(BaseRepository[FormField]):
+    model = FormField
+
+
+class FormResponseRepository(BaseRepository[FormResponse]):
+    model = FormResponse
+
+
+class FieldOptionRepository(BaseRepository[FieldOption]):
+    model = FieldOption

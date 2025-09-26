@@ -5,11 +5,12 @@ from src.database import get_db_session
 from src.forms.schemas import (
     CreateOrUpdateForm,
     ResponseForm,
-    ResponseFormList
+    ResponseFormList,
+    CreateAnswer
 )
 from src.dependencies import get_current_user
 from src.users.models import User
-from src.forms.service import FormService
+from src.forms.service import FormService, FormResponseService
 
 
 router = APIRouter(
@@ -70,5 +71,21 @@ async def delete_form(
 
 
 @router.post("/{form_id}/responses")
-async def send_form_response():
-    pass
+async def send_form_response(
+    form_id: int,
+    response_data: CreateAnswer,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session)
+):
+    response_id = await FormResponseService.submit_response(
+            form_id=form_id,
+            user_id=user.id,
+            answers=response_data.answers,
+            session=session
+        )
+
+    return {
+        "message": "Response submitted successfully",
+        "response_id": response_id,
+        "form_id": form_id
+    }

@@ -23,9 +23,12 @@ class BaseRepository[M]:
 
     @classmethod
     async def add_data(cls, session, **data):
-        query = insert(cls.model).values(**data)
-        await session.execute(query)
-        await session.commit()
+        try:
+            query = insert(cls.model).values(**data)
+            await session.execute(query)
+            await session.commit()
+        except Exception:
+            await session.rollback()
 
     @classmethod
     async def delete_data(cls, session, **data):
