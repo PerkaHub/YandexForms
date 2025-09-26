@@ -44,3 +44,58 @@ class DatabaseException(BaseAPIException):
 class FormNotFoundExceprion(BaseAPIException):
     detail = 'Form not found'
     status_code = status.HTTP_404_NOT_FOUND
+
+
+class FieldNotFoundException(BaseAPIException):
+    def __init__(self, field_id: int):
+        self.detail = f'Field with id {field_id} not found in form'
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
+
+
+class TextAnswerRequiredException(BaseAPIException):
+    def __init__(self, field_id: int):
+        self.detail = f'Text answer required for field {field_id}'
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
+
+
+class OptionIDNotAllowedException(BaseAPIException):
+    def __init__(self, field_id: int):
+        self.detail = f'Option ID not allowed for text field {field_id}'
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
+
+
+class OptionIDRequiredException(BaseAPIException):
+    def __init__(self, field_id: int):
+        self.detail = f'Option ID required for field {field_id}'
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
+
+
+class TextNotAllowedException(BaseAPIException):
+    def __init__(self, field_type, field_id: int):
+        self.detail = f'Text not allowed for {field_type} field {field_id}'
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
+
+
+class OptionNotFoundException(BaseAPIException):
+    def __init__(self, option_id: int, field_id: int):
+        self.detail = (
+            f'Option with id {option_id} '
+            f'not found for field {field_id}'
+        )
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
+
+
+class RequiredFieldException(BaseAPIException):
+    def __init__(self, question_text: str, field_id: int):
+        self.detail = (
+            f'Required field "{question_text}" '
+            f'(id: {field_id}) must be answered'
+        )
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        super().__init__(self.detail, self.status_code)
