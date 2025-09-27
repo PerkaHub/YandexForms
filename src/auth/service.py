@@ -18,7 +18,8 @@ from src.exceptions import (
     InvalidTokenException,
     TokenNotFoundException,
     UsernameAlreadyExistsException,
-    IncorrectUserDataException
+    IncorrectUserDataException,
+    ShortUsernameException
 )
 
 pwd_context = CryptContext(schemes=['argon2'], deprecated='auto')
@@ -27,6 +28,8 @@ pwd_context = CryptContext(schemes=['argon2'], deprecated='auto')
 class UserService:
     @classmethod
     async def register_user(cls, username, password, session):
+        if not username or len(username) < 3:
+            raise ShortUsernameException()
         user = await UserRepository.get_one_or_none(session, username=username)
         if user:
             raise UsernameAlreadyExistsException()

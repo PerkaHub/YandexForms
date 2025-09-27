@@ -41,6 +41,11 @@ class DatabaseException(BaseAPIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+class ShortUsernameException(BaseAPIException):
+    detail = 'Username too short'
+    status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
 class FormNotFoundExceprion(BaseAPIException):
     detail = 'Form not found'
     status_code = status.HTTP_404_NOT_FOUND
