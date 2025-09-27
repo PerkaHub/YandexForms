@@ -1,0 +1,864 @@
+{
+	"info": {
+		"_postman_id": "c01c56ee-fd8f-49a8-81d7-4e148fa8591e",
+		"name": "YaForms",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40672205"
+	},
+	"item": [
+		{
+			"name": "Auth Registration",
+			"item": [
+				{
+					"name": "Successful Registration",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate truly unique username",
+									"const timestamp = new Date().getTime();",
+									"const randomSuffix = Math.floor(Math.random() * 10000);",
+									"const uniqueUsername = `testuser_${timestamp}_${randomSuffix}`;",
+									"pm.variables.set(\"current_username\", uniqueUsername);",
+									"console.log(\"Generated username:\", uniqueUsername);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test response structure",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"access_token\");",
+									"    pm.expect(response).to.have.property(\"token_type\");",
+									"    pm.expect(response.token_type).to.eql(\"Bearer\");",
+									"});",
+									"",
+									"// Save token for future requests",
+									"if (pm.response.code === 200) {",
+									"    const responseData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", responseData.access_token);",
+									"    pm.environment.set(\"token_type\", responseData.token_type);",
+									"    pm.environment.set(\"registered_username\", pm.variables.get(\"current_username\"));",
+									"    console.log(\"Successfully registered user:\", pm.variables.get(\"current_username\"));",
+									"}",
+									"",
+									"// Test token validity",
+									"pm.test(\"Access token is valid\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.access_token).to.be.a(\"string\");",
+									"    pm.expect(response.access_token.length).to.be.greaterThan(50);",
+									"});",
+									"",
+									"// Debug info",
+									"console.log(\"Response status:\", pm.response.code);",
+									"console.log(\"Response body:\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{current_username}}\",\n  \"password\": \"securepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Already Exists",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test conflict status code",
+									"pm.test(\"Status code is 400 or 409\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 409]);",
+									"});",
+									"",
+									"// Test error message",
+									"pm.test(\"Error message for duplicate user\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"    if (pm.response.code === 400 || pm.response.code === 409) {",
+									"        pm.expect(response.detail).to.include.oneOf([\"already\", \"exists\", \"registered\"]);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{registered_username}}\",\n  \"password\": \"anotherpassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Data - Empty Username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 422\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});",
+									"",
+									"pm.test(\"Error details present\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"\",\n  \"password\": \"validpassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Missing Required Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 422\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});",
+									"",
+									"pm.test(\"Validation error for missing fields\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth Login",
+			"item": [
+				{
+					"name": "Successful Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test response structure",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"access_token\");",
+									"    pm.expect(response).to.have.property(\"token_type\");",
+									"    pm.expect(response.token_type).to.eql(\"Bearer\");",
+									"});",
+									"",
+									"// Save token for future requests",
+									"if (pm.response.code === 200) {",
+									"    const responseData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", responseData.access_token);",
+									"    pm.environment.set(\"token_type\", responseData.token_type);",
+									"    pm.environment.set(\"registered_username\", pm.variables.get(\"current_username\"));",
+									"    console.log(\"Successfully logged in as:\", pm.variables.get(\"current_username\"));",
+									"}",
+									"",
+									"// Test token validity",
+									"pm.test(\"Access token is valid\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.access_token).to.be.a(\"string\");",
+									"    pm.expect(response.access_token.length).to.be.greaterThan(50);",
+									"});",
+									"",
+									"// Debug info",
+									"console.log(\"Response status:\", pm.response.code);",
+									"console.log(\"Response body:\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{registered_username}}\",\n  \"password\": \"securepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test unauthorized status code",
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test error message",
+									"pm.test(\"Error message for invalid credentials\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"    pm.expect(response.detail).to.include.oneOf([\"incorrect\", \"invalid\", \"credentials\", \"password\"]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{registered_username}}\",\n  \"password\": \"wrongpassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test not found status code",
+									"pm.test(\"Status code is 404 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404, 401]);",
+									"});",
+									"",
+									"// Test error message",
+									"pm.test(\"Error message for non-existent user\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"    if (pm.response.code === 404 || pm.response.code === 401) {",
+									"        pm.expect(response.detail).to.include.oneOf([\"not found\", \"not exist\", \"Incorrect\", \"invalid\"]);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"nonexistentuser12345\",\n  \"password\": \"anypassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Data - Empty Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Validation error for empty fields\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"\",\n  \"password\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Missing Required Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 422\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});",
+									"",
+									"pm.test(\"Validation error for missing fields\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"detail\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Forms Management",
+			"item": [
+				{
+					"name": "Create Form",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test response structure",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"message\");",
+									"    pm.expect(response).to.have.property(\"form_id\");",
+									"    pm.expect(response.message).to.eql(\"Form created successfully\");",
+									"});",
+									"",
+									"// Save form ID for future requests",
+									"if (pm.response.code === 200) {",
+									"    const responseData = pm.response.json();",
+									"    pm.environment.set(\"form_id\", responseData.form_id);",
+									"    console.log(\"Successfully created form with ID:\", responseData.form_id);",
+									"}",
+									"",
+									"// Debug info",
+									"console.log(\"Response status:\", pm.response.code);",
+									"console.log(\"Response body:\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Тестовая форма\",\n  \"description\": \"Описание формы\",\n  \"fields\": [\n    {\n      \"field_type\": \"radio\",\n      \"question_text\": \"Первый вопрос\",\n      \"is_required\": true,\n      \"options\": [\n        {\"option_text\": \"Вариант 1\"},\n        {\"option_text\": \"Вариант 2\"}\n      ]\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/forms/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Forms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test response structure",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"forms\");",
+									"    pm.expect(response.forms).to.be.an(\"array\");",
+									"    if (response.forms.length > 0) {",
+									"        const form = response.forms[0];",
+									"        pm.expect(form).to.have.property(\"id\");",
+									"        pm.expect(form).to.have.property(\"title\");",
+									"        pm.expect(form).to.have.property(\"description\");",
+									"        pm.expect(form).to.have.property(\"fields\");",
+									"        pm.expect(form.fields).to.be.an(\"array\");",
+									"    }",
+									"});",
+									"",
+									"// Debug info",
+									"console.log(\"Response status:\", pm.response.code);",
+									"console.log(\"Response body:\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:7777/api/v1/forms",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"forms"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Form by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test response structure",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"id\");",
+									"    pm.expect(response).to.have.property(\"title\");",
+									"    pm.expect(response).to.have.property(\"description\");",
+									"    pm.expect(response).to.have.property(\"fields\");",
+									"    pm.expect(response.fields).to.be.an(\"array\");",
+									"    if (response.fields.length > 0) {",
+									"        const field = response.fields[0];",
+									"        pm.expect(field).to.have.property(\"id\");",
+									"        pm.expect(field).to.have.property(\"field_type\");",
+									"        pm.expect(field).to.have.property(\"question_text\");",
+									"        pm.expect(field).to.have.property(\"is_required\");",
+									"        pm.expect(field).to.have.property(\"options\");",
+									"    }",
+									"});",
+									"",
+									"// Debug info",
+									"console.log(\"Response status:\", pm.response.code);",
+									"console.log(\"Response body:\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:7777/api/v1/forms/{{form_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"{{form_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Form by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test response structure",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property(\"id\");",
+									"    pm.expect(response).to.have.property(\"title\");",
+									"    pm.expect(response).to.have.property(\"description\");",
+									"    pm.expect(response).to.have.property(\"fields\");",
+									"    pm.expect(response.fields).to.be.an(\"array\");",
+									"    if (response.fields.length > 0) {",
+									"        const field = response.fields[0];",
+									"        pm.expect(field).to.have.property(\"id\");",
+									"        pm.expect(field).to.have.property(\"field_type\");",
+									"        pm.expect(field).to.have.property(\"question_text\");",
+									"        pm.expect(field).to.have.property(\"is_required\");",
+									"        pm.expect(field).to.have.property(\"options\");",
+									"    }",
+									"});",
+									"",
+									"// Debug info",
+									"console.log(\"Response status:\", pm.response.code);",
+									"console.log(\"Response body:\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Обновленный заголовок формы\",\n  \"description\": \"Обновленное описание формы\",\n  \"fields\": [\n    {\n      \"field_type\": \"text\",\n      \"question_text\": \"Обновленный вопрос\",\n      \"is_required\": true,\n      \"options\": []\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7777/api/v1/forms/{{form_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"{{form_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:7777",
+			"type": "string"
+		}
+	]
+}
