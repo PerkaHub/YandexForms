@@ -1,0 +1,29 @@
+services:
+  db:
+    container_name: db
+    image: postgres:17
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - 5432:5432
+  
+  yaforms:
+    container_name: yaforms_app
+    build:
+      context: ..
+      dockerfile: dockerfile
+    env_file:
+      - .env
+    command: >
+      sh -c "
+        .venv/bin/alembic upgrade head &&
+        .venv/bin/gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000
+      "
+    depends_on:
+      - db
+    ports:
+      - 7777:8000
