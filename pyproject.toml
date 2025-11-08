@@ -8,12 +8,46 @@ dependencies = [
     "alembic>=1.16.5",
     "argon2-cffi>=25.1.0",
     "asyncpg>=0.30.0",
+    "black>=25.9.0",
     "fastapi>=0.117.1",
     "gunicorn>=23.0.0",
+    "isort>=7.0.0",
     "passlib>=1.7.4",
     "pydantic>=2.11.9",
     "pydantic-settings>=2.10.1",
     "pyjwt>=2.10.1",
+    "ruff>=0.14.4",
     "sqlalchemy>=2.0.43",
     "uvicorn>=0.36.0",
 ]
+
+[tool.black]
+line-length = 79
+target-version = ['py312']
+exclude = '''
+/(
+    \.venv
+  | \.git
+  | \.idea
+  | migrations
+  | alembic
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 79
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+skip = [".venv", "migrations", "alembic"]
+
+[tool.ruff]
+line-length = 79
+target-version = "py312"
+exclude = [".venv", "migrations", "alembic"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C"]
+ignore = ["E501", "B008"]
