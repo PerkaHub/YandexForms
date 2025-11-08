@@ -1,4 +1,4 @@
-from sqlalchemy import insert, select, delete
+from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -14,9 +14,7 @@ class BaseRepository[M]:
         return result.scalar_one_or_none()
 
     @classmethod
-    async def get_all(
-        cls, session, **filter_by
-    ) -> list[M]:
+    async def get_all(cls, session, **filter_by) -> list[M]:
         query = select(cls.model).filter_by(**filter_by)
         result = await session.execute(query)
         return result.scalars().all()

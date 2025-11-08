@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -6,32 +7,26 @@ from src.database import Base
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(
-        primary_key=True, nullable=False, autoincrement=True,
+        primary_key=True,
+        nullable=False,
+        autoincrement=True,
     )
     username: Mapped[str] = mapped_column(
         nullable=False, index=True, unique=True
     )
-    hashed_password: Mapped[str] = mapped_column(
-        nullable=False
-    )
+    hashed_password: Mapped[str] = mapped_column(nullable=False)
 
-    forms: Mapped[list['Form']] = relationship(
-        "Form",
-        back_populates="owner",
-        lazy='selectin'
+    forms: Mapped[list["Form"]] = relationship(
+        "Form", back_populates="owner", lazy="selectin"
     )
-    responses: Mapped[list['FormResponse']] = relationship(
-        "FormResponse",
-        back_populates="user",
-        lazy='selectin'
+    responses: Mapped[list["FormResponse"]] = relationship(
+        "FormResponse", back_populates="user", lazy="selectin"
     )
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
-        "RefreshToken",
-        back_populates="user",
-        lazy='selectin'
+        "RefreshToken", back_populates="user", lazy="selectin"
     )
 
 
@@ -40,13 +35,12 @@ class RefreshToken(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"))
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
     token_hash: Mapped[str] = mapped_column()
     expires_at: Mapped[datetime] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
     user: Mapped["User"] = relationship(
-        "User",
-        back_populates="refresh_tokens",
-        lazy='joined'
+        "User", back_populates="refresh_tokens", lazy="joined"
     )

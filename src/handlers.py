@@ -1,4 +1,4 @@
-from fastapi import Request, FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from src.exceptions import BaseAPIException
@@ -10,6 +10,5 @@ def setup_exception_handlers(app: FastAPI):
         request: Request, exc: BaseAPIException
     ) -> JSONResponse:
         return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
+            status_code=exc.status_code, content={"detail": exc.detail}
         )

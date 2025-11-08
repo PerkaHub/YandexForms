@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repository.base import BaseRepository
-from src.users.models import User, RefreshToken
+from src.users.models import RefreshToken, User
 
 
 class UserRepository(BaseRepository[User]):
@@ -21,7 +22,7 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
 
         query = select(RefreshToken).where(
             RefreshToken.expires_at > datetime.now(),
-            RefreshToken.created_at > time_limit
+            RefreshToken.created_at > time_limit,
         )
         tokens = (await session.execute(query)).scalars().all()
 

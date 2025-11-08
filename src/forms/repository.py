@@ -1,9 +1,9 @@
 from sqlalchemy import insert, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.repository.base import BaseRepository
-from src.forms.models import Form, FormField, FieldOption, FormResponse
 from src.exceptions import DatabaseException
+from src.forms.models import FieldOption, Form, FormField, FormResponse
+from src.repository.base import BaseRepository
 
 
 class FormRepository(BaseRepository[Form]):
@@ -13,12 +13,14 @@ class FormRepository(BaseRepository[Form]):
     async def add_fields_and_options(data, form, session):
         form_fields_data = []
         for field_data in data.fields:
-            form_fields_data.append({
-                'form_id': form.id,
-                'field_type': field_data.field_type.value,
-                'question_text': field_data.question_text,
-                'is_required': field_data.is_required
-            })
+            form_fields_data.append(
+                {
+                    "form_id": form.id,
+                    "field_type": field_data.field_type.value,
+                    "question_text": field_data.question_text,
+                    "is_required": field_data.is_required,
+                }
+            )
 
         if form_fields_data:
             await session.execute(insert(FormField), form_fields_data)
@@ -32,10 +34,12 @@ class FormRepository(BaseRepository[Form]):
         field_options_data = []
         for field_id, field_data in zip(field_ids, data.fields):
             for option_data in field_data.options:
-                field_options_data.append({
-                    'field_id': field_id,
-                    'option_text': option_data.option_text
-                })
+                field_options_data.append(
+                    {
+                        "field_id": field_id,
+                        "option_text": option_data.option_text,
+                    }
+                )
 
         if field_options_data:
             await session.execute(insert(FieldOption), field_options_data)
@@ -49,7 +53,7 @@ class FormRepository(BaseRepository[Form]):
             form = Form(
                 title=data.title,
                 description=data.description,
-                owner_id=user_id
+                owner_id=user_id,
             )
             session.add(form)
             await session.flush()

@@ -15,13 +15,12 @@ class Settings(BaseSettings):
     @property
     def ASYNC_DATABASE_URL(self):
         return (
-            f'{self.DB_DRIVER}://{self.DB_USER}:{self.DB_PASSWORD}'
-            f'@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+            f"{self.DB_DRIVER}://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
     model_config = SettingsConfigDict(
-        env_file='infra/.env',
-        env_file_encoding="utf-8"
+        env_file="infra/.env", env_file_encoding="utf-8"
     )
 
 

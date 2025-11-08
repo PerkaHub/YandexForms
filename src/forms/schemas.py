@@ -1,4 +1,5 @@
 from pydantic import BaseModel, field_validator
+
 from src.forms.enum import FieldTypeEnum
 
 
@@ -12,15 +13,18 @@ class CreateOrUpdateFormField(BaseModel):
     is_required: bool
     options: list[CreateOrUpdateFieldOption] = []
 
-    @field_validator('options')
+    @field_validator("options")
     @classmethod
     def validate_options(cls, v, info):
-        field_type = info.data.get('field_type')
+        field_type = info.data.get("field_type")
 
         if field_type == FieldTypeEnum.TEXT and v:
-            raise ValueError('Text fields cannot have options')
-        if field_type in [FieldTypeEnum.RADIO, FieldTypeEnum.CHECKBOX] and not v:
-            raise ValueError('Radio and checkbox fields must have options')
+            raise ValueError("Text fields cannot have options")
+        if (
+            field_type in [FieldTypeEnum.RADIO, FieldTypeEnum.CHECKBOX]
+            and not v
+        ):
+            raise ValueError("Radio and checkbox fields must have options")
 
         return v
 
