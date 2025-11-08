@@ -40,7 +40,6 @@ class FormRepository(BaseRepository[Form]):
         if field_options_data:
             await session.execute(insert(FieldOption), field_options_data)
 
-        await session.commit()
         await session.refresh(form)
         return form
 
@@ -54,8 +53,9 @@ class FormRepository(BaseRepository[Form]):
             )
             session.add(form)
             await session.flush()
-
-            return await cls.add_fields_and_options(data, form, session)
+            data = await cls.add_fields_and_options(data, form, session)
+            await session.commit()
+            return data
         except SQLAlchemyError:
             await session.rollback()
             raise DatabaseException()
@@ -65,8 +65,9 @@ class FormRepository(BaseRepository[Form]):
         try:
             for field in form.fields:
                 await session.delete(field)
-
-            return await cls.add_fields_and_options(data, form, session)
+            data = await cls.add_fields_and_options(data, form, session)
+            session.commit()
+            return data
         except SQLAlchemyError:
             await session.rollback()
             raise DatabaseException()

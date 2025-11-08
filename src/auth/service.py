@@ -93,6 +93,7 @@ async def create_or_update_refresh_token(
         expires_at=expires_at,
         created_at=created_at
     )
+    await session.commit()
 
     return original_token
 
@@ -129,6 +130,8 @@ async def refresh_access_token(refresh_token: str | None, session) -> Tokens:
         raise InvalidTokenException()
 
     tokens = await create_tokens(user.id, user.username, session)
+
+    await session.commit()
     return Tokens(
         access_token=tokens.access_token,
         refresh_token=tokens.refresh_token

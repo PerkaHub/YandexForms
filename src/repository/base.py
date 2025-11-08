@@ -26,7 +26,6 @@ class BaseRepository[M]:
         try:
             query = insert(cls.model).values(**data)
             await session.execute(query)
-            await session.commit()
         except Exception:
             await session.rollback()
 
@@ -34,4 +33,3 @@ class BaseRepository[M]:
     async def delete_data(cls, session, **data):
         query = delete(cls.model).filter_by(**data)
         await session.execute(query)
-        await session.commit()
